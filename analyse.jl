@@ -15,9 +15,11 @@ MADN = pyimport("MADN")
 # @time [MADN.oneGame() for _ in 1:100]; # Takes about twice as long as running directly in python3
 #MADN.oneGame()
 #MADN.oneGame(tak=["k", "k", "k", "k"])
-allK100 = [MADN.oneGame(tak=["k", "k", "k", "k"]) for _ in 1:100]
-allR100 = [MADN.oneGame(tak=["r", "r", "r", "r"]) for _ in 1:100]
-halfKHalfR100 = [MADN.oneGame(tak=["r", "k", "r", "k"]) for _ in 1:100]
+allK1000 = [MADN.oneGame(tak=["k", "k", "k", "k"]) for _ in 1:1000];
+allR1000 = [MADN.oneGame(tak=["r", "r", "r", "r"]) for _ in 1:1000];
+halfKHalfR1000 = [MADN.oneGame(tak=["r", "k", "r", "k"]) for _ in 1:1000];
+oneKThreeR1000 = [MADN.oneGame(tak=["k", "r", "r", "r"]) for _ in 1:1000];
+threeKOneR1000 = [MADN.oneGame(tak=["k", "k", "k", "r"]) for _ in 1:1000];
 
 # keys(allK100[1])
 # KeySet for a Dict{Any, Any} with 5 entries. Keys:
@@ -41,31 +43,73 @@ function winningFreq(madnList; rel=false)
     Dict(i => sum(a.==i)/l for i in 1:4)
 end
 
-winningFreq(allK100, rel=true)
-winningFreq(allR100, rel=true)
-winningFreq(halfKHalfR100, rel=true)
+function whoKicksWhom(madnDict; rel=false)
+    a = madnDict["kickingWho"]
+    b = madnDict["kickingWhom"]
+    #println(length(a))
+    #println(length(b))
+    c = zeros(4,4)
+    ct=0
+    for i in zip(a,b)
+        c[i...] += 1
+    end
+    return ifelse(rel, c/sum(c), c)
+end
 
-nOfKicks(allK100) |> mean
-nOfKicks(allR100) |> mean
-nOfKicks(halfKhalfR100) |> mean
+function kickAvgMat(madnList)
+    a = sum(whoKicksWhom.(madnList), dims=1)[1]
+    a/sum(a)
+end
 
-histogram(nOfKicks(allK100), label="K", bins=0:10:150, alpha=0.5)
-histogram!(nOfKicks(allR100), label="R", bins=0:10:150, alpha=0.5)
-histogram!(nOfKicks(halfKHalfR100), label="Half", bins=0:10:150, alpha=0.5)
+allK1000[2]["kickingWho"]
+allK1000[2]["kickingWhom"]
+a = sum(whoKicksWhom.(threeKOneR1000), dims=1)[1]
+heatmap(a/sum(a))
+kickAvgMat(allK1000) |> heatmap
+ylabel!("Who")
+xlabel!("Whom")
+kickAvgMat(allR1000) |> heatmap
+kickAvgMat(halfKHalfR1000) |> heatmap
+kickAvgMat(oneKThreeR1000) |> heatmap
+kickAvgMat(threeKOneR1000) |> heatmap
+
+whoKicksWhom(allK1000[1], rel=true)
+whoKicksWhom(oneKThreeR1000[2]) |> heatmap
+bar(winningFreq(allK1000, rel=true))
+bar(winningFreq(allR1000, rel=true))
+bar(winningFreq(halfKHalfR1000, rel=true))
+bar(winningFreq(oneKThreeR1000, rel=true))
+bar(winningFreq(threeKOneR1000, rel=true))
+winningFreq(halfKHalfR1000, rel=true)
+
+nOfKicks(allK1000) |> mean
+nOfKicks(allR1000) |> mean
+nOfKicks(halfKHalfR1000) |> mean
+
+histogram(nOfKicks(allK1000), label="K", bins=0:5:150, alpha=0.5)
+histogram!(nOfKicks(allR1000), label="R", bins=0:5:150, alpha=0.5)
+histogram!(nOfKicks(halfKHalfR1000), label="Half", bins=0:5:150, alpha=0.5)
+histogram!(nOfKicks(oneKThreeR1000), label="1K3R", bins=0:5:150, alpha=0.5)
+histogram!(nOfKicks(threeKOneR1000), label="3K1R", bins=0:5:150, alpha=0.5)
 title!("Number of kicks in game")
 xlabel!("Kicks")
 
-lenOfGame(allK100) |> mean
-lenOfGame(allR100) |> mean
-lenOfGame(halfKhalfR100) |> mean
+lenOfGame(allK1000) |> mean
+lenOfGame(threeKOneR1000) |> mean
+lenOfGame(halfKHalfR1000) |> mean
+lenOfGame(oneKThreeR1000) |> mean
+lenOfGame(allR1000) |> mean
 
-histogram(lenOfGame(allK100), label="K", bins=0:50:1500, alpha=0.5)
-histogram!(lenOfGame(allR100), label="R", bins=0:50:1500, alpha=0.5)
-histogram!(lenOfGame(halfKHalfR100), label="Half", bins=0:50:1500, alpha=0.5)
+
+histogram(lenOfGame(allK1000), label="K", bins=0:50:1500, alpha=0.5)
+histogram!(lenOfGame(allR1000), label="R", bins=0:50:1500, alpha=0.5)
+histogram!(lenOfGame(halfKHalfR1000), label="Half", bins=0:50:1500, alpha=0.5)
+histogram!(lenOfGame(oneKThreeR1000), label="1K3R", bins=0:50:1500, alpha=0.5)
+histogram!(lenOfGame(threeKOneR1000), label="3K1R", bins=0:50:1500, alpha=0.5)
 title!("Length of game")
 xlabel!("Rounds")
 
 
-winningFreq(allK100, true)
-winningFreq(allR100, true)
-winningFreq(halfKhalfR100, true)
+winningFreq(allK1000, rel=true)
+winningFreq(allR1000, rel=true)
+winningFreq(halfKHalfR1000, rel=true)
