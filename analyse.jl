@@ -1,34 +1,55 @@
 using Pkg
+Pkg.activate(".")
+#Pkg.instantiate()
+
 using Downloads
 #pwd()
 # MADNurl = "https://github.com/hannesbecher/MADN/releases/download/v1.0.0-beta/MADN_v1.0.0-beta.tar.gz" 
 # basename(MADNurl)
-# download(MADNurl, basename(MADNurl))
+# Downloads.download(MADNurl, basename(MADNurl))
 # run(Cmd(["tar",  "-zxvf", basename(MADNurl)]))
 # readdir()
-Pkg.activate(".")
 
-#Pkg.instantiate()
+
+
 using Plots
+#ENV["PYTHON"] = "/home/hbecher/miniconda3/bin/python3"
 #ENV["PYTHON"] = "/Users/hannesbecher/miniconda3/bin/python3"
 #Pkg.build("PyCall")
 using PyCall
 using StatsBase
 using Statistics
-pwd()
+using Serialization
+using Printf
 
 pushfirst!(PyVector(pyimport("sys")."path"), "")
 MADN = pyimport("MADN")
 # @time [MADN.oneGame() for _ in 1:100]; # Takes about twice as long as running directly in python3
+
+# MADN.oneGame() returns a PyDict:
 #MADN.oneGame()
 #MADN.oneGame(tak=["k", "k", "k", "k"])
-allK = [MADN.oneGame(tak=["k", "k", "k", "k"]) for _ in 1:10000];
-allR = [MADN.oneGame(tak=["r", "r", "r", "r"]) for _ in 1:10000];
-halfKHalfR = [MADN.oneGame(tak=["r", "k", "r", "k"]) for _ in 1:10000];
-oneKThreeR = [MADN.oneGame(tak=["k", "r", "r", "r"]) for _ in 1:10000];
-threeKOneR = [MADN.oneGame(tak=["k", "k", "k", "r"]) for _ in 1:10000];
+#allK = [MADN.oneGame(tak=["k", "k", "k", "k"]) for _ in 1:10000];
+#allR = [MADN.oneGame(tak=["r", "r", "r", "r"]) for _ in 1:10000];
+#halfKHalfR = [MADN.oneGame(tak=["r", "k", "r", "k"]) for _ in 1:10000];
+#oneKThreeR = [MADN.oneGame(tak=["k", "r", "r", "r"]) for _ in 1:10000];
+#threeKOneR = [MADN.oneGame(tak=["k", "k", "k", "r"]) for _ in 1:10000];
 
-# keys(allK100[1])
+#serialise into RESULTS/
+#mkpath("RESULTS")
+#serialize("RESULTS/allK.jls", allK)
+#serialize("RESULTS/allR.jls", allR)
+#serialize("RESULTS/halfKHalfR.jls", halfKHalfR)
+#serialize("RESULTS/oneKThreeR.jls", oneKThreeR)
+#serialize("RESULTS/threeKOneR.jls", threeKOneR)
+
+#allK = deserialize("RESULTS/allK.jls");
+#allR = deserialize("RESULTS/allR.jls");
+#halfKHalfR = deserialize("RESULTS/halfKHalfR.jls");
+#oneKThreeR = deserialize("RESULTS/oneKThreeR.jls");
+#threeKOneR = deserialize("RESULTS/threeKOneR.jls");
+
+# keys(allK[1])
 # KeySet for a Dict{Any, Any} with 5 entries. Keys:
 #     "kickingWhom"
 #     "finishingTurns"
@@ -68,20 +89,41 @@ function kickAvgMat(madnList)
     a/sum(a)
 end
 
+
+#cat(whoKicksWhom.(allK)..., dims=1) # blocks REPL but does not do anything?
+
+
+function kickAvgMatPlot(madnList)
+    a = sum(whoKicksWhom.(madnList), dims=1)[1]
+    b = a/length(madnList)#/sum(a)
+    p = heatmap(b)
+    ylabel!("Who")
+    xlabel!("Whom")
+    sds= zeros(4, 4)
+    txt = Vector{Tuple}()
+    for i in 1:size(b)[1]
+        for j in 1:size(b)[2]
+            if i != j
+                push!(txt, (j, i, @sprintf("m %.2f", b[i,j])))
+                annotate!((j, i-0.2, @sprintf("sd %.2f", std(map(x -> x[i,j], whoKicksWhom.(allK))))))
+            end
+        end
+    end
+    annotate!(txt)
+    return p
+end
+kickAvgMatPlot(allK)
+kickAvgMatPlot(allR)
+kickAvgMatPlot(halfKHalfR)
+kickAvgMatPlot(oneKThreeR)
+kickAvgMatPlot(threeKOneR)
+
 allK[2]["kickingWho"]
 allK[2]["kickingWhom"]
-a = sum(whoKicksWhom.(threeKOneR), dims=1)[1]
-heatmap(a/sum(a))
-kickAvgMat(allK) |> heatmap
-ylabel!("Who")
-xlabel!("Whom")
-kickAvgMat(allR) |> heatmap
-kickAvgMat(halfKHalfR) |> heatmap
-kickAvgMat(oneKThreeR) |> heatmap
-kickAvgMat(threeKOneR) |> heatmap
 
-whoKicksWhom(allK[1], rel=true)
-whoKicksWhom(oneKThreeR[2]) |> heatmap
+
+
+
 bar(winningFreq(allK, rel=true))
 bar(winningFreq(allR, rel=true))
 bar(winningFreq(halfKHalfR, rel=true))

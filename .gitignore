@@ -26,3 +26,6 @@ Manifest.toml
 # Ignore MADN package that is downloaded automatically.
 MADN*
 MADN/
+
+RESULTS/
+.vscode/
