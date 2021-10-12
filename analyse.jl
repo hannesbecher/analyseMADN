@@ -28,26 +28,26 @@ MADN = pyimport("MADN")
 
 # MADN.oneGame() returns a PyDict:
 #MADN.oneGame()
-#MADN.oneGame(tak=["k", "k", "k", "k"])
-#allK = [MADN.oneGame(tak=["k", "k", "k", "k"]) for _ in 1:10000];
-#allR = [MADN.oneGame(tak=["r", "r", "r", "r"]) for _ in 1:10000];
-#halfKHalfR = [MADN.oneGame(tak=["r", "k", "r", "k"]) for _ in 1:10000];
-#oneKThreeR = [MADN.oneGame(tak=["k", "r", "r", "r"]) for _ in 1:10000];
-#threeKOneR = [MADN.oneGame(tak=["k", "k", "k", "r"]) for _ in 1:10000];
+# #MADN.oneGame(tak=["k", "k", "k", "k"])
+# allK = [MADN.oneGame(tak=["k", "k", "k", "k"]) for _ in 1:10000];
+# allR = [MADN.oneGame(tak=["r", "r", "r", "r"]) for _ in 1:10000];
+# halfKHalfR = [MADN.oneGame(tak=["r", "k", "r", "k"]) for _ in 1:10000];
+# oneKThreeR = [MADN.oneGame(tak=["k", "r", "r", "r"]) for _ in 1:10000];
+# threeKOneR = [MADN.oneGame(tak=["k", "k", "k", "r"]) for _ in 1:10000];
 
-#serialise into RESULTS/
-#mkpath("RESULTS")
-#serialize("RESULTS/allK.jls", allK)
-#serialize("RESULTS/allR.jls", allR)
-#serialize("RESULTS/halfKHalfR.jls", halfKHalfR)
-#serialize("RESULTS/oneKThreeR.jls", oneKThreeR)
-#serialize("RESULTS/threeKOneR.jls", threeKOneR)
+# #serialise into RESULTS/
+# # mkpath("RESULTS")
+# serialize("RESULTS/allK.jls", allK)
+# serialize("RESULTS/allR.jls", allR)
+# serialize("RESULTS/halfKHalfR.jls", halfKHalfR)
+# serialize("RESULTS/oneKThreeR.jls", oneKThreeR)
+# serialize("RESULTS/threeKOneR.jls", threeKOneR)
 
-#allK = deserialize("RESULTS/allK.jls");
-#allR = deserialize("RESULTS/allR.jls");
-#halfKHalfR = deserialize("RESULTS/halfKHalfR.jls");
-#oneKThreeR = deserialize("RESULTS/oneKThreeR.jls");
-#threeKOneR = deserialize("RESULTS/threeKOneR.jls");
+allK = deserialize("RESULTS/allK.jls");
+allR = deserialize("RESULTS/allR.jls");
+halfKHalfR = deserialize("RESULTS/halfKHalfR.jls");
+oneKThreeR = deserialize("RESULTS/oneKThreeR.jls");
+threeKOneR = deserialize("RESULTS/threeKOneR.jls");
 
 # keys(allK[1])
 # KeySet for a Dict{Any, Any} with 5 entries. Keys:
@@ -112,7 +112,11 @@ function kickAvgMatPlot(madnList)
     annotate!(txt)
     return p
 end
-kickAvgMatPlot(allK)
+
+# a = whoKicksWhom.(allK)
+# cat(..., dims=3)
+
+@time kickAvgMatPlot(allK)
 kickAvgMatPlot(allR)
 kickAvgMatPlot(halfKHalfR)
 kickAvgMatPlot(oneKThreeR)
