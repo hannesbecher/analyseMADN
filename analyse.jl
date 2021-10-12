@@ -94,58 +94,66 @@ end
 #cat(whoKicksWhom.(allK)..., dims=1) # blocks REPL but does not do anything?
 
 
-function kickAvgMatPlot(madnList)
-    a = sum(whoKicksWhom.(madnList), dims=1)[1]
-    b = a/length(madnList)#/sum(a)
-    p = heatmap(b)
-    ylabel!("Who")
-    xlabel!("Whom")
-    sds= zeros(4, 4)
-    txt = Vector{Tuple}()
-    for i in 1:size(b)[1]
-        for j in 1:size(b)[2]
-            if i != j
-                push!(txt, (j, i, @sprintf("m %.2f", b[i,j])))
-                annotate!((j, i-0.2, @sprintf("sd %.2f", std(map(x -> x[i,j], whoKicksWhom.(allK))))))
-            end
-        end
-    end
-    annotate!(txt)
-    return p
-end
 
 function matVec2Arr(mv)
     a = zeros(size(mv[1])..., length(mv))
-    for i in length(mv)
+    for i in 1:length(mv)
         a[:,:,i] = mv[i]
     end
     return a
 end
 
-kickKArr = zeros(4, 4, 10000)
-kicksK = whoKicksWhom.(allK)
-matVec2Arr(kicksK)
-@time(
-for i in 1:10000
-    @views kickKArr[:,:,i] = kicksK[i]
+function kickMatMeanSdHeat(kickArr, tit="")
+    meanMat = dropdims(sum(kickArr, dims=3), dims=3) ./ size(kickArr)[3]
+    
+    plotMat = zeros(5,5)
+    plotMat[2:5, 2:5] = meanMat
+    
+    meanMat = vcat(sum(meanMat, dims=1), meanMat)
+    meanMat = hcat(sum(meanMat, dims=2), meanMat)
+    
+    
+    p = heatmap(plotMat)
+    ylabel!("Who")
+    xlabel!("Whom")
+    title!(tit)
+    for i in 1:size(kickArr)[1]
+        for j in 1:size(kickArr)[2]
+            if i != j
+                annotate!((j+1, i+1.2, @sprintf("μ %.2f", meanMat[i+1,j+1])))
+                annotate!((j+1, i+0.8, @sprintf("σ %.2f", std(kickArr[i, j, :]))))
+            end
+            
+        end
+        
+        
+        
+    end
+    for i in 1:5
+        annotate!((1,i+0.2,  (@sprintf("μ %.2f", meanMat[i,1]), "white")))
+    end
+    for j in 2:5
+        annotate!((j,1+0.2,  (@sprintf("μ %.2f", meanMat[1,j]), "white")))
+    end
+    return p
 end
-)
-kickKArr
-# a = whoKicksWhom.(allK);
-# cat(a[1:1000]..., dims=3)
-a[1]
-a
-@time 
-kickAvgMatPlot(allR)
-kickAvgMatPlot(halfKHalfR)
-kickAvgMatPlot(oneKThreeR)
-kickAvgMatPlot(threeKOneR)
-
-allK[2]["kickingWho"]
-allK[2]["kickingWhom"]
 
 
+allKKicks = matVec2Arr(whoKicksWhom.(allK));
+allRKicks = matVec2Arr(whoKicksWhom.(allR));
+halfKHalfRKicks = matVec2Arr(whoKicksWhom.(halfKHalfR));
+oneKThreeRKicks = matVec2Arr(whoKicksWhom.(oneKThreeR));
+threeKOneRKicks = matVec2Arr(whoKicksWhom.(threeKOneR));
 
+
+kickMatMeanSdHeat(allKKicks, "All kickers")
+kickMatMeanSdHeat(allRKicks, "All runners")
+kickMatMeanSdHeat(halfKHalfRKicks, "Kickers 2&4, runners 1&3")
+kickMatMeanSdHeat(oneKThreeRKicks, "Kicker 1, runners 2,3,4")
+kickMatMeanSdHeat(threeKOneRKicks, "Kickers 1,2,3, runner 4")
+
+allKKicks[4,1,:] |> mean
+allKKicks[4,1,:] |> histogram
 
 bar(winningFreq(allK, rel=true))
 bar(winningFreq(allR, rel=true))
@@ -185,3 +193,7 @@ xlabel!("Rounds")
 winningFreq(allK, rel=true)
 winningFreq(allR, rel=true)
 winningFreq(halfKHalfR, rel=true)
+
+a = reshape(1:16, 4, 4)
+b = vcat(a, sum(a, dims=1))
+c = hcat(sum(b, dims=2), b)
