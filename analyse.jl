@@ -49,6 +49,7 @@ halfKHalfR = deserialize("RESULTS/halfKHalfR.jls");
 oneKThreeR = deserialize("RESULTS/oneKThreeR.jls");
 threeKOneR = deserialize("RESULTS/threeKOneR.jls");
 
+
 # keys(allK[1])
 # KeySet for a Dict{Any, Any} with 5 entries. Keys:
 #     "kickingWhom"
@@ -113,10 +114,28 @@ function kickAvgMatPlot(madnList)
     return p
 end
 
-# a = whoKicksWhom.(allK)
-# cat(..., dims=3)
+function matVec2Arr(mv)
+    a = zeros(size(mv[1])..., length(mv))
+    for i in length(mv)
+        a[:,:,i] = mv[i]
+    end
+    return a
+end
 
-@time kickAvgMatPlot(allK)
+kickKArr = zeros(4, 4, 10000)
+kicksK = whoKicksWhom.(allK)
+matVec2Arr(kicksK)
+@time(
+for i in 1:10000
+    @views kickKArr[:,:,i] = kicksK[i]
+end
+)
+kickKArr
+# a = whoKicksWhom.(allK);
+# cat(a[1:1000]..., dims=3)
+a[1]
+a
+@time 
 kickAvgMatPlot(allR)
 kickAvgMatPlot(halfKHalfR)
 kickAvgMatPlot(oneKThreeR)
