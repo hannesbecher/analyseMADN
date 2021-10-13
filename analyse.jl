@@ -4,7 +4,7 @@ Pkg.activate(".")
 
 using Downloads
 #pwd()
-# MADNurl = "https://github.com/hannesbecher/MADN/releases/download/v1.0.0-beta/MADN_v1.0.0-beta.tar.gz" 
+# MADNurl = "https://github.com/hannesbecher/MADN/releases/download/v1.0.0-beta2/MADN_v1.0.0-beta2.tar.gz" 
 # basename(MADNurl)
 # Downloads.download(MADNurl, basename(MADNurl))
 # run(Cmd(["tar",  "-zxvf", basename(MADNurl)]))
@@ -21,22 +21,28 @@ using StatsBase
 using Statistics
 using Serialization
 using Printf
+using Random
 
 pushfirst!(PyVector(pyimport("sys")."path"), "")
 MADN = pyimport("MADN")
 # @time [MADN.oneGame() for _ in 1:100]; # Takes about twice as long as running directly in python3
 
 # MADN.oneGame() returns a PyDict:
-#MADN.oneGame()
+#MADN.oneGame(seed=12345)
 # #MADN.oneGame(tak=["k", "k", "k", "k"])
-# allK = [MADN.oneGame(tak=["k", "k", "k", "k"]) for _ in 1:10000];
-# allR = [MADN.oneGame(tak=["r", "r", "r", "r"]) for _ in 1:10000];
-# halfKHalfR = [MADN.oneGame(tak=["r", "k", "r", "k"]) for _ in 1:10000];
-# oneKThreeR = [MADN.oneGame(tak=["k", "r", "r", "r"]) for _ in 1:10000];
-# threeKOneR = [MADN.oneGame(tak=["k", "k", "k", "r"]) for _ in 1:10000];
 
-# #serialise into RESULTS/
-# # mkpath("RESULTS")
+
+#allK = [MADN.oneGame(tak=["k", "k", "k", "k"], seed=i) for i in seedsForMADN[1:1000]];
+#allR = [MADN.oneGame(tak=["r", "r", "r", "r"], seed=i) for i in seedsForMADN[1:1000]];
+
+# Random.seed!(12345); seedsForMADN = rand(10000); allK = [MADN.oneGame(tak=["k", "k", "k", "k"], seed=i) for i in seedsForMADN];
+# Random.seed!(12346); seedsForMADN = rand(10000); allR = [MADN.oneGame(tak=["r", "r", "r", "r"], seed=i) for i in seedsForMADN];
+# Random.seed!(12347); seedsForMADN = rand(10000); halfKHalfR = [MADN.oneGame(tak=["r", "k", "r", "k"], seed=i) for i in seedsForMADN];
+# Random.seed!(12348); seedsForMADN = rand(10000); oneKThreeR = [MADN.oneGame(tak=["k", "r", "r", "r"], seed=i) for i in seedsForMADN];
+# Random.seed!(12349); seedsForMADN = rand(10000); threeKOneR = [MADN.oneGame(tak=["k", "k", "k", "r"], seed=i) for i in seedsForMADN];
+
+# # #serialise into RESULTS/
+# # # mkpath("RESULTS")
 # serialize("RESULTS/allK.jls", allK)
 # serialize("RESULTS/allR.jls", allR)
 # serialize("RESULTS/halfKHalfR.jls", halfKHalfR)
@@ -57,6 +63,8 @@ threeKOneR = deserialize("RESULTS/threeKOneR.jls");
 #     "finishingOrder"
 #     "kickingTurns"
 #     "kickingWho"
+
+mkpath("PLOTS")
 
 function nOfKicks(madnList)
     map(x -> length(x["kickingTurns"]), madnList)
@@ -112,22 +120,19 @@ function kickMatMeanSdHeat(kickArr, tit="")
     meanMat = vcat(sum(meanMat, dims=1), meanMat)
     meanMat = hcat(sum(meanMat, dims=2), meanMat)
     
-    
     p = heatmap(plotMat)
     ylabel!("Who")
     xlabel!("Whom")
     title!(tit)
+    xticks!([1,2,3,4,5],["Total", "1", "2", "3", "4"])
+    yticks!([1,2,3,4,5],["Total", "1", "2", "3", "4"])
     for i in 1:size(kickArr)[1]
         for j in 1:size(kickArr)[2]
             if i != j
                 annotate!((j+1, i+1.2, @sprintf("μ %.2f", meanMat[i+1,j+1])))
                 annotate!((j+1, i+0.8, @sprintf("σ %.2f", std(kickArr[i, j, :]))))
-            end
-            
+            end 
         end
-        
-        
-        
     end
     for i in 1:5
         annotate!((1,i+0.2,  (@sprintf("μ %.2f", meanMat[i,1]), "white")))
@@ -147,7 +152,9 @@ threeKOneRKicks = matVec2Arr(whoKicksWhom.(threeKOneR));
 
 
 kickMatMeanSdHeat(allKKicks, "All kickers")
+#savefig("PLOTS/KickNumsAllK.pdf")
 kickMatMeanSdHeat(allRKicks, "All runners")
+#savefig("PLOTS/KickNumsAllR.pdf")
 kickMatMeanSdHeat(halfKHalfRKicks, "Kickers 2&4, runners 1&3")
 kickMatMeanSdHeat(oneKThreeRKicks, "Kicker 1, runners 2,3,4")
 kickMatMeanSdHeat(threeKOneRKicks, "Kickers 1,2,3, runner 4")
@@ -197,3 +204,19 @@ winningFreq(halfKHalfR, rel=true)
 a = reshape(1:16, 4, 4)
 b = vcat(a, sum(a, dims=1))
 c = hcat(sum(b, dims=2), b)
+
+########################
+# Kick field
+
+allK[1]
+histogram(allK[1]["whoField"])
+
+histogram(reduce(vcat, map(x -> x["whoField"], allK)), normalize=true, alpha=0.5, label="allK")
+histogram!(reduce(vcat, map(x -> x["whoField"], allR)), normalize=true, alpha=0.5, label="allR")
+title!("Kicks whoField")
+#savefig("PLOTS/KicksWhoField.pdf")
+
+histogram(reduce(vcat, map(x -> x["whomField"], allK)), normalize=true, alpha=0.5, label="allK")
+histogram!(reduce(vcat, map(x -> x["whomField"], allR)), normalize=true, alpha=0.5, label="allR")
+title!("Kicks whomField")
+#savefig("PLOTS/KicksWhomField.pdf")
