@@ -216,7 +216,17 @@ histogram!(reduce(vcat, map(x -> x["whoField"], allR)), normalize=true, alpha=0.
 title!("Kicks whoField")
 #savefig("PLOTS/KicksWhoField.pdf")
 
+histogram(mod.(reduce(vcat, map(x -> x["whoField"], allK)), 10), normalize=:probability, alpha=0.5, label="allK")
+histogram!(mod.(reduce(vcat, map(x -> x["whoField"], allR)), 10), normalize=:probability, alpha=0.5, label="allR")
+title!("Kicks whoField, mod10")
+#savefig("PLOTS/KicksWhoFieldMod10.pdf")
+
 histogram(reduce(vcat, map(x -> x["whomField"], allK)), normalize=true, alpha=0.5, label="allK")
 histogram!(reduce(vcat, map(x -> x["whomField"], allR)), normalize=true, alpha=0.5, label="allR")
 title!("Kicks whomField")
 #savefig("PLOTS/KicksWhomField.pdf")
+
+histogram(mod.(reduce(vcat, map(x -> x["whomField"], allK)), 10), normalize=:probability, alpha=0.5, label="allK")
+histogram!(mod.(reduce(vcat, map(x -> x["whomField"], allR)), 10), normalize=:probability, alpha=0.5, label="allR")
+title!("Kicks whomField, mod10")
+#savefig("PLOTS/KicksWhomFieldMod10.pdf")
