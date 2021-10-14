@@ -1,148 +1,31 @@
-using Pkg
-Pkg.activate(".")
-#Pkg.instantiate()
+include("data.jl")
 
-using Downloads
-#pwd()
-# MADNurl = "https://github.com/hannesbecher/MADN/releases/download/v1.0.0-beta2/MADN_v1.0.0-beta2.tar.gz" 
-# basename(MADNurl)
-# Downloads.download(MADNurl, basename(MADNurl))
-# run(Cmd(["tar",  "-zxvf", basename(MADNurl)]))
-# readdir()
+# Produces
+# allK
+# allR
+# halfKHalfR
+# oneKThreeR
+# threeKOneR
 
-
-
-using Plots
-#ENV["PYTHON"] = "/home/hbecher/miniconda3/bin/python3"
-#ENV["PYTHON"] = "/Users/hannesbecher/miniconda3/bin/python3"
-#Pkg.build("PyCall")
-using PyCall
-using StatsBase
-using Statistics
-using Serialization
-using Printf
-using Random
-
-pushfirst!(PyVector(pyimport("sys")."path"), "")
-MADN = pyimport("MADN")
-# @time [MADN.oneGame() for _ in 1:100]; # Takes about twice as long as running directly in python3
-
-# MADN.oneGame() returns a PyDict:
-#MADN.oneGame(seed=12345)
-# #MADN.oneGame(tak=["k", "k", "k", "k"])
-
-
-#allK = [MADN.oneGame(tak=["k", "k", "k", "k"], seed=i) for i in seedsForMADN[1:1000]];
-#allR = [MADN.oneGame(tak=["r", "r", "r", "r"], seed=i) for i in seedsForMADN[1:1000]];
-
-# Random.seed!(12345); seedsForMADN = rand(10000); allK = [MADN.oneGame(tak=["k", "k", "k", "k"], seed=i) for i in seedsForMADN];
-# Random.seed!(12346); seedsForMADN = rand(10000); allR = [MADN.oneGame(tak=["r", "r", "r", "r"], seed=i) for i in seedsForMADN];
-# Random.seed!(12347); seedsForMADN = rand(10000); halfKHalfR = [MADN.oneGame(tak=["r", "k", "r", "k"], seed=i) for i in seedsForMADN];
-# Random.seed!(12348); seedsForMADN = rand(10000); oneKThreeR = [MADN.oneGame(tak=["k", "r", "r", "r"], seed=i) for i in seedsForMADN];
-# Random.seed!(12349); seedsForMADN = rand(10000); threeKOneR = [MADN.oneGame(tak=["k", "k", "k", "r"], seed=i) for i in seedsForMADN];
-
-# # #serialise into RESULTS/
-# # # mkpath("RESULTS")
-# serialize("RESULTS/allK.jls", allK)
-# serialize("RESULTS/allR.jls", allR)
-# serialize("RESULTS/halfKHalfR.jls", halfKHalfR)
-# serialize("RESULTS/oneKThreeR.jls", oneKThreeR)
-# serialize("RESULTS/threeKOneR.jls", threeKOneR)
-
-allK = deserialize("RESULTS/allK.jls");
-allR = deserialize("RESULTS/allR.jls");
-halfKHalfR = deserialize("RESULTS/halfKHalfR.jls");
-oneKThreeR = deserialize("RESULTS/oneKThreeR.jls");
-threeKOneR = deserialize("RESULTS/threeKOneR.jls");
-
+include("functions.jl")
 
 # keys(allK[1])
 # KeySet for a Dict{Any, Any} with 5 entries. Keys:
-#     "kickingWhom"
-#     "finishingTurns"
-#     "finishingOrder"
-#     "kickingTurns"
-#     "kickingWho"
+# "kickingWhom"
+# "kickingWho"
+# "whomField"
+# "kickingTurns"
+# "finishingOrder"
+# "whoField"
+# "finishingTurns"
 
-mkpath("PLOTS")
-
-function nOfKicks(madnList)
-    map(x -> length(x["kickingTurns"]), madnList)
-end
-
-function lenOfGame(madnList)
-    map(x -> x["finishingTurns"][end], madnList)
-end
-
-function winningFreq(madnList; rel=false)
-    a = map(x -> x["finishingOrder"][1], madnList)
-    l = ifelse(rel, length(a), 1)
-    Dict(i => sum(a.==i)/l for i in 1:4)
-end
-
-function whoKicksWhom(madnDict; rel=false)
-    a = madnDict["kickingWho"]
-    b = madnDict["kickingWhom"]
-    #println(length(a))
-    #println(length(b))
-    c = zeros(4,4)
-    ct=0
-    for i in zip(a,b)
-        c[i...] += 1
-    end
-    return ifelse(rel, c/sum(c), c)
-end
-
-function kickAvgMat(madnList)
-    a = sum(whoKicksWhom.(madnList), dims=1)[1]
-    a/sum(a)
-end
+#mkpath("PLOTS")
 
 
-#cat(whoKicksWhom.(allK)..., dims=1) # blocks REPL but does not do anything?
-
-
-
-function matVec2Arr(mv)
-    a = zeros(size(mv[1])..., length(mv))
-    for i in 1:length(mv)
-        a[:,:,i] = mv[i]
-    end
-    return a
-end
-
-function kickMatMeanSdHeat(kickArr, tit="")
-    meanMat = dropdims(sum(kickArr, dims=3), dims=3) ./ size(kickArr)[3]
-    
-    plotMat = zeros(5,5)
-    plotMat[2:5, 2:5] = meanMat
-    
-    meanMat = vcat(sum(meanMat, dims=1), meanMat)
-    meanMat = hcat(sum(meanMat, dims=2), meanMat)
-    
-    p = heatmap(plotMat)
-    ylabel!("Who")
-    xlabel!("Whom")
-    title!(tit)
-    xticks!([1,2,3,4,5],["Total", "1", "2", "3", "4"])
-    yticks!([1,2,3,4,5],["Total", "1", "2", "3", "4"])
-    for i in 1:size(kickArr)[1]
-        for j in 1:size(kickArr)[2]
-            if i != j
-                annotate!((j+1, i+1.2, @sprintf("μ %.2f", meanMat[i+1,j+1])))
-                annotate!((j+1, i+0.8, @sprintf("σ %.2f", std(kickArr[i, j, :]))))
-            end 
-        end
-    end
-    for i in 1:5
-        annotate!((1,i+0.2,  (@sprintf("μ %.2f", meanMat[i,1]), "white")))
-    end
-    for j in 2:5
-        annotate!((j,1+0.2,  (@sprintf("μ %.2f", meanMat[1,j]), "white")))
-    end
-    return p
-end
-
+histogram(reduce(vcat, whoFieldWho.(oneKThreeR, 1)), alpha=0.5, label="Pl1", normalize=:probability)
+histogram!(reduce(vcat, whoFieldWho.(oneKThreeR, 2)), alpha=0.5, label="Pl2", normalize=:probability)
+histogram(reduce(vcat, whomFieldWhom.(oneKThreeR, 1)), alpha=0.5, label="Pl1", normalize=:probability)
+histogram!(reduce(vcat, whomFieldWhom.(oneKThreeR, 2)), alpha=0.5, label="Pl2", normalize=:probability)
 
 allKKicks = matVec2Arr(whoKicksWhom.(allK));
 allRKicks = matVec2Arr(whoKicksWhom.(allR));
@@ -213,16 +96,19 @@ histogram(allK[1]["whoField"])
 
 histogram(reduce(vcat, map(x -> x["whoField"], allK)), normalize=true, alpha=0.5, label="allK")
 histogram!(reduce(vcat, map(x -> x["whoField"], allR)), normalize=true, alpha=0.5, label="allR")
+histogram!(reduce(vcat, map(x -> x["whoField"], oneKThreeR)), normalize=true, alpha=0.5, label="allR")
 title!("Kicks whoField")
 #savefig("PLOTS/KicksWhoField.pdf")
 
 histogram(mod.(reduce(vcat, map(x -> x["whoField"], allK)), 10), normalize=:probability, alpha=0.5, label="allK")
 histogram!(mod.(reduce(vcat, map(x -> x["whoField"], allR)), 10), normalize=:probability, alpha=0.5, label="allR")
+histogram!(mod.(reduce(vcat, map(x -> x["whoField"], oneKThreeR)), 10), normalize=:probability, alpha=0.5, label="allR")
 title!("Kicks whoField, mod10")
 #savefig("PLOTS/KicksWhoFieldMod10.pdf")
 
 histogram(reduce(vcat, map(x -> x["whomField"], allK)), normalize=true, alpha=0.5, label="allK")
 histogram!(reduce(vcat, map(x -> x["whomField"], allR)), normalize=true, alpha=0.5, label="allR")
+histogram!(reduce(vcat, map(x -> x["whomField"], oneKThreeR)), normalize=true, alpha=0.5, label="1K3R")
 title!("Kicks whomField")
 #savefig("PLOTS/KicksWhomField.pdf")
 
@@ -230,3 +116,14 @@ histogram(mod.(reduce(vcat, map(x -> x["whomField"], allK)), 10), normalize=:pro
 histogram!(mod.(reduce(vcat, map(x -> x["whomField"], allR)), 10), normalize=:probability, alpha=0.5, label="allR")
 title!("Kicks whomField, mod10")
 #savefig("PLOTS/KicksWhomFieldMod10.pdf")
+
+
+finishingTurnsAllK = reduce(hcat, finishingTurns.(allK));
+
+scatter(map(x -> finishingTurnsAllK[x,:], 1:2)...)
+plot!(x -> x)
+scatter!(map(x -> finishingTurnsAllK[x,:], 2:3)...)
+scatter(map(x -> finishingTurnsAllK[x,:], [1,3])...)
+histogram(finishingTurnsAllK[1,:], alpha=0.5, label="Finish1")
+histogram!(finishingTurnsAllK[2,:], alpha=0.5, label="Finish2")
+histogram!(finishingTurnsAllK[3,:], alpha=0.5, label="Finish3")
