@@ -57,7 +57,7 @@ function kickMatMeanSdHeat(kickArr, tit="")
     meanMat = vcat(sum(meanMat, dims=1), meanMat)
     meanMat = hcat(sum(meanMat, dims=2), meanMat)
     
-    p = heatmap(plotMat)
+    p = heatmap(plotMat, dpi=300, colorbar=false)
     ylabel!("Who")
     xlabel!("Whom")
     title!(tit)
@@ -66,16 +66,25 @@ function kickMatMeanSdHeat(kickArr, tit="")
     for i in 1:size(kickArr)[1]
         for j in 1:size(kickArr)[2]
             if i != j
-                annotate!((j+1, i+1.2, @sprintf("μ %.2f", meanMat[i+1,j+1])))
-                annotate!((j+1, i+0.8, @sprintf("σ %.2f", std(kickArr[i, j, :]))))
+                annotate!((j+1, i+1.2,
+                @sprintf("μ %.1f",
+                meanMat[i+1,j+1])))
+                # annotate!((j+1, i+0.8,
+                # @sprintf("(%.1f,%.1f)",
+                # quantile(kickArr[i, j, :], [0.025,0.975])...
+                # )))
+                annotate!((j+1, i+0.8,
+                @sprintf("σ %.1f",
+                std(kickArr[i, j, :])
+                )))
             end 
         end
     end
     for i in 1:5
-        annotate!((1,i+0.2,  (@sprintf("μ %.2f", meanMat[i,1]), "white")))
+        annotate!((1,i+0.2,  (@sprintf("μ %.1f", meanMat[i,1]), "white")))
     end
     for j in 2:5
-        annotate!((j,1+0.2,  (@sprintf("μ %.2f", meanMat[1,j]), "white")))
+        annotate!((j,1+0.2,  (@sprintf("μ %.1f", meanMat[1,j]), "white")))
     end
     return p
 end

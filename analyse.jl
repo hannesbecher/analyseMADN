@@ -22,13 +22,49 @@ include("functions.jl")
 #mkpath("PLOTS")
 
 
+
+histogram(lenOfGame(allK), label="All kickers", alpha=0.4, bins=200:20:1200, dpi=300)
+histogram!(lenOfGame(allR), label="All runners", alpha=0.4, bins=200:20:1200)
+vline!([median(lenOfGame(allK)), median(lenOfGame(allR))], line=(2, :dash, "grey"), label="Medians")
+title!("Length of game")
+xlabel!("Rounds")
+ylabel!("Number of games")
+quantile(lenOfGame(allK), [0.025, 0.5, 0.975])
+# 368.0 # 521.0 # 754.0
+quantile(lenOfGame(allR), [0.025, 0.5, 0.975])
+# 299.0 # 391.0 # 518.0
+#savefig("PLOTS/lenOfGamKR.png")
+
+
+
+allKKicks = matVec2Arr(whoKicksWhom.(allK));
+allRKicks = matVec2Arr(whoKicksWhom.(allR));
+kickMatMeanSdHeat(allKKicks, "All kickers")
+#savefig("PLOTS/KickNumsAllK.png")
+kickMatMeanSdHeat(allRKicks, "All runners")
+#savefig("PLOTS/KickNumsAllR.png")
+
+
+
+
+
+
+
+histogram!(lenOfGame(halfKHalfR), label="Half", bins=0:50:1500, alpha=0.5)
+histogram!(lenOfGame(oneKThreeR), label="1K3R", bins=0:50:1500, alpha=0.5)
+histogram!(lenOfGame(threeKOneR), label="3K1R", bins=0:50:1500, alpha=0.5)
+title!("Length of game")
+xlabel!("Rounds")
+ylabel!("Number of games")
+
+
+
+
 histogram(reduce(vcat, whoFieldWho.(oneKThreeR, 1)), alpha=0.5, label="Pl1", normalize=:probability)
 histogram!(reduce(vcat, whoFieldWho.(oneKThreeR, 2)), alpha=0.5, label="Pl2", normalize=:probability)
 histogram(reduce(vcat, whomFieldWhom.(oneKThreeR, 1)), alpha=0.5, label="Pl1", normalize=:probability)
 histogram!(reduce(vcat, whomFieldWhom.(oneKThreeR, 2)), alpha=0.5, label="Pl2", normalize=:probability)
 
-allKKicks = matVec2Arr(whoKicksWhom.(allK));
-allRKicks = matVec2Arr(whoKicksWhom.(allR));
 halfKHalfRKicks = matVec2Arr(whoKicksWhom.(halfKHalfR));
 oneKThreeRKicks = matVec2Arr(whoKicksWhom.(oneKThreeR));
 threeKOneRKicks = matVec2Arr(whoKicksWhom.(threeKOneR));
@@ -71,14 +107,6 @@ lenOfGame(oneKThreeR) |> mean
 lenOfGame(allR) |> mean
 
 
-histogram(lenOfGame(allK), label="K", bins=0:50:1500, alpha=0.5)
-histogram!(lenOfGame(allR), label="R", bins=0:50:1500, alpha=0.5)
-histogram!(lenOfGame(halfKHalfR), label="Half", bins=0:50:1500, alpha=0.5)
-histogram!(lenOfGame(oneKThreeR), label="1K3R", bins=0:50:1500, alpha=0.5)
-histogram!(lenOfGame(threeKOneR), label="3K1R", bins=0:50:1500, alpha=0.5)
-title!("Length of game")
-xlabel!("Rounds")
-
 
 winningFreq(allK, rel=true)
 winningFreq(allR, rel=true)
@@ -94,11 +122,13 @@ c = hcat(sum(b, dims=2), b)
 allK[1]
 histogram(allK[1]["whoField"])
 
-histogram(reduce(vcat, map(x -> x["whoField"], allK)), normalize=true, alpha=0.5, label="allK")
-histogram!(reduce(vcat, map(x -> x["whoField"], allR)), normalize=true, alpha=0.5, label="allR")
-histogram!(reduce(vcat, map(x -> x["whoField"], oneKThreeR)), normalize=true, alpha=0.5, label="allR")
-title!("Kicks whoField")
-#savefig("PLOTS/KicksWhoField.pdf")
+histogram(reduce(vcat, map(x -> x["whoField"], allK)), normalize=:probability, bins=-0.5:1:39.5, alpha=0.5, label="All kickers", dpi=300)
+histogram!(reduce(vcat, map(x -> x["whoField"], allR)), normalize=:probability, bins=-0.5:1:39.5, alpha=0.5, label="All runners")
+#histogram!(reduce(vcat, map(x -> x["whoField"], oneKThreeR)), normalize=true, alpha=0.5, label="allR")
+title!("Kicks handed out")
+xlabel!("Kicks on player field")
+ylabel!("Relative frequency")
+#savefig("PLOTS/KicksWhoField.png")
 
 histogram(mod.(reduce(vcat, map(x -> x["whoField"], allK)), 10), normalize=:probability, alpha=0.5, label="allK")
 histogram!(mod.(reduce(vcat, map(x -> x["whoField"], allR)), 10), normalize=:probability, alpha=0.5, label="allR")
@@ -106,11 +136,13 @@ histogram!(mod.(reduce(vcat, map(x -> x["whoField"], oneKThreeR)), 10), normaliz
 title!("Kicks whoField, mod10")
 #savefig("PLOTS/KicksWhoFieldMod10.pdf")
 
-histogram(reduce(vcat, map(x -> x["whomField"], allK)), normalize=true, alpha=0.5, label="allK")
-histogram!(reduce(vcat, map(x -> x["whomField"], allR)), normalize=true, alpha=0.5, label="allR")
-histogram!(reduce(vcat, map(x -> x["whomField"], oneKThreeR)), normalize=true, alpha=0.5, label="1K3R")
-title!("Kicks whomField")
-#savefig("PLOTS/KicksWhomField.pdf")
+histogram(reduce(vcat, map(x -> x["whomField"], allK)),  normalize=:probability, bins=-0.5:1:39.5, alpha=0.5, label="All kickers", dpi=300)
+histogram!(reduce(vcat, map(x -> x["whomField"], allR)),  normalize=:probability, bins=-0.5:1:39.5, alpha=0.5, label="All runners")
+#histogram!(reduce(vcat, map(x -> x["whomField"], oneKThreeR)), normalize=true, alpha=0.5, label="1K3R")
+title!("Kicks received")
+xlabel!("Kicks on player field")
+ylabel!("Relative frequency")
+#savefig("PLOTS/KicksWhomField.png")
 
 histogram(mod.(reduce(vcat, map(x -> x["whomField"], allK)), 10), normalize=:probability, alpha=0.5, label="allK")
 histogram!(mod.(reduce(vcat, map(x -> x["whomField"], allR)), 10), normalize=:probability, alpha=0.5, label="allR")
