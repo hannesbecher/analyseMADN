@@ -24,7 +24,8 @@ using Printf
 using Random
 
 pushfirst!(PyVector(pyimport("sys")."path"), "")
-MADN = pyimport("MADN")
+#MADN = pyimport("MADN")
+
 # @time [MADN.oneGame() for _ in 1:100]; # Takes about twice as long as running directly in python3
 
 # MADN.oneGame() returns a PyDict:
