@@ -2,19 +2,22 @@
 
 using Pkg
 using Revise
-Pkg.develop(path=expanduser("~/Code/MADN.jl/"))
+#Pkg.develop(path=expanduser("~/Code/MADN.jl/"))
 using MADN
+using BenchmarkTools
 
-
-a = setupGame(4)
+a = setupGame(4);
 whoOnBf(a, 45)
 printGameState(a)
-oneTurn!(a, print=true)
+
+
+
+# @benchmark oneTurn!(a)
 iOnBf(a, 41)
 otherOnBf(a, 41)
 otherOnBf(a, 39)
 whoOnBf(a, 45)
 otherOnBf(a, 45)
 isStartField(a, 41)
-myPiecePositions(a)
+MADN.playerPiecePositions(a, 5)
 myPiecePositionDict(a)
