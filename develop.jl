@@ -37,7 +37,7 @@ startFromWhere(a, 1)
 startFromWhere(a, 2)
 playerOnBF(a, 2)
 a
-iOnBF(a, 2)
+iOnBf.(a, [2, 3, 4])
 otherOnBF(a, 46)
 whoseTurn(a)
 kickOut(a, 1)
@@ -68,3 +68,16 @@ pf2bf(43,1)
 bf2pf.(collect(40:-1:1),1)
 
 (!).(isnothing.([nothing, nothing, 1]))
+
+
+all(x -> x==true, [1,0,0])
+any(x -> x==true, [1,0,0])
+
+fill(1, size(c))
+
+print(a)
+swapPieces!(a, 1, 44)
+swapPieces!(a, 7, 43)
+swapPieces!(a, 57, 42)
+#@benchmark rollAndMove!(a)
+rollAndMove!(a)
