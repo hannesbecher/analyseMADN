@@ -76,8 +76,14 @@ any(x -> x==true, [1,0,0])
 fill(1, size(c))
 
 print(a)
-swapPieces!(a, 1, 44)
+@benchmark swapPieces!(a, 1, 44)
 swapPieces!(a, 7, 43)
 swapPieces!(a, 57, 42)
 #@benchmark rollAndMove!(a)
 rollAndMove!(a)
+
+a1 = [1,2,3,4];
+@benchmark a1 + [4,3,2,1]
+@benchmark(a1 .+= [4,3,2,1])
+
+
