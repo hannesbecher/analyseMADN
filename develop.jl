@@ -10,8 +10,10 @@ using MADN
 using BenchmarkTools
 
 a = setupGame(4);
+typeof(a)
 whoOnBf(a, 45)
 printGameState(a)
+print(a)
 swapPieces!(a, 44,1)
 swapPieces!(a, 48,2)
 moveAndKick(a, 1, 2)
@@ -46,5 +48,21 @@ kickOut(a, 1)
 44 % 4
 mod1(45, 4)
 bf2pf(40, 4)
-bf2pf.(57:60, 3)
+bf2pf.(57:60, 1)
 bf2pf.(57:60,1)
+
+print(a)
+swapPieces!(a, 6, 42)
+swapPieces!(a, 61, 47)
+swapPieces!(a, 63, 45)
+swapPieces!(a, 57, 59)
+gapsInGoal(a, 1)
+gapsInGoal(a, 2)
+gapsInGoal(a, 3)
+
+hasPlFinished(a, 2)
+hasPlFinished(a, 1)
+mod1(4+1, 4)
+rollAndMove!(a)
+pf2bf.(30:40, 2)
+bf2pf.(collect(40:-1:1),1)
