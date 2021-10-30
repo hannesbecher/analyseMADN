@@ -12,7 +12,6 @@ using BenchmarkTools
 a = setupGame(4);
 typeof(a)
 whoOnBf(a, 45)
-printGameState(a)
 print(a)
 swapPieces!(a, 44,1)
 swapPieces!(a, 48,2)
@@ -64,5 +63,8 @@ hasPlFinished(a, 2)
 hasPlFinished(a, 1)
 mod1(4+1, 4)
 rollAndMove!(a)
-pf2bf.(30:40, 2)
+pf2bf.([0, 45, 46], 1)
+pf2bf(43,1)
 bf2pf.(collect(40:-1:1),1)
+
+(!).(isnothing.([nothing, nothing, 1]))
