@@ -5,7 +5,7 @@ Pkg.activate(".")
 #Pkg.instantiate()
 using Revise
 #Pkg.develop(path=expanduser("~/Code/MADN.jl/"))
-#Pkg.develop(path=expanduser("~/git_repos/MADN.jl/"))
+Pkg.develop(path=expanduser("~/git_repos/MADN.jl/"))
 using MADN
 using BenchmarkTools
 
@@ -27,6 +27,7 @@ isStartField(a, 41)
 isStartField(a, 31)
 MADN.playerPiecePositions(a, 5)
 piecePositionStruct(a,1)
+#?piecePositionStruct
 piecePositionStruct(a,2)
 piecePositionStruct(a,3)
 piecePositionStruct(a,4)
@@ -35,23 +36,45 @@ Revise.errors()
 kickBackToWhere(a, 1)
 startFromWhere(a, 1)
 startFromWhere(a, 2)
-playerOnBF(a, 2)
+playerOnBF(a, 57)
 a
 iOnBf.(a, [2, 3, 4])
-otherOnBF(a, 46)
+iOnBf(a, 2)
+otherOnBf(a, 46)
+map(x -> otherOnBf(a, x), [46, 47, -1])
 whoseTurn(a)
 kickOut(a, 1)
 
+b = gatherIntelligence(a, 2)
+b.weights
 
-
+pf2bf(41, 1)
 44 % 4
 mod1(45, 4)
 bf2pf(40, 4)
 bf2pf.(57:60, 1)
 bf2pf.(57:60,1)
 
+
+swapPieces!(a, 6, 44)
+swapPieces!(a, 43, 57)
+swapPieces!(a, 11, 48)
 print(a)
-swapPieces!(a, 6, 42)
+a.whoseTurn
+Strategy()
+makeStrategy().sWeights
+# @benchmark gatherIntelligence(a, 2)
+a.whoseTurn = 2
+pl = Player()
+print(a)
+rollAndMove!(a)
+a = setupGame(4)
+[oneTurn!(a, prnt=true) for _ in 1:1000]
+ifelse(1>2, (println("Option 1"); 1), (println("Option 2"); 3))
+?ifelse
+pieceWeights(pl.strategy, gatherIntelligence(a, 2))
+gatherIntelligence(a, 2).weights
+swapPieces!(a, 12, 8)
 swapPieces!(a, 61, 47)
 swapPieces!(a, 63, 45)
 swapPieces!(a, 57, 59)
@@ -71,7 +94,9 @@ bf2pf.(collect(40:-1:1),1)
 
 
 all(x -> x==true, [1,0,0])
-any(x -> x==true, [1,0,0])
+
+# @benchmark any(x -> x==true, [1,0,0]) # faster
+# @benchmark any([1,0,0] .== true)
 
 fill(1, size(c))
 
