@@ -68,10 +68,30 @@ a.whoseTurn = 2
 pl = Player()
 print(a)
 rollAndMove!(a)
-a = setupGame(4)
-[oneTurn!(a, prnt=true) for _ in 1:1000]
+@benchmark (
+a = setupGame(4);
+while length(a.finishingOrder) < 3 
+    oneTurn!(a, prnt=false)
+end   
+)
+
+
+function runGame()
+    a = setupGame(4)
+    while length(a.finishingOrder) < 3 
+        oneTurn!(a, prnt=false)
+    end   
+    #print(a)
+end
+@benchmark (runGame();)
+
+print(a)
+#[oneTurn!(a, prnt=true) for _ in 1:1000]
+
+
+
 ifelse(1>2, (println("Option 1"); 1), (println("Option 2"); 3))
-?ifelse
+#?ifelse
 pieceWeights(pl.strategy, gatherIntelligence(a, 2))
 gatherIntelligence(a, 2).weights
 swapPieces!(a, 12, 8)
@@ -112,3 +132,4 @@ a1 = [1,2,3,4];
 @benchmark(a1 .+= [4,3,2,1])
 
 
+p = Player()
