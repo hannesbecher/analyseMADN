@@ -9,7 +9,7 @@ Pkg.develop(path=expanduser("~/git_repos/MADN.jl/"))
 using MADN
 using BenchmarkTools
 
-a = setupGame(4);
+a = setupGame(4)
 typeof(a)
 whoOnBf(a, 45)
 print(a)
@@ -68,17 +68,17 @@ a.whoseTurn = 2
 pl = Player()
 print(a)
 rollAndMove!(a)
-@benchmark (
-a = setupGame(4);
-while length(a.finishingOrder) < 3 
+
+a = setupGame(4)
+while length(a.events["finishingOrder"]) < 3 
     oneTurn!(a, prnt=false)
 end   
-)
 
+a.events
 
 function runGame()
     a = setupGame(4)
-    while length(a.finishingOrder) < 3 
+    while length(a.events["finishingOrder"]) < 3 
         oneTurn!(a, prnt=false)
     end   
     #print(a)
