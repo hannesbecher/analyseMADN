@@ -81,11 +81,16 @@ function runGame()
     while length(a.events["finishingOrder"]) < 3 
         oneTurn!(a, prnt=false)
     end   
-    #print(a)
+    return a.events
 end
+runGame()
 @benchmark (runGame();)
 
+methods(oneGame)
+@benchmark (oneGame();)
+@time a = [oneGame() for _ in 1:1000]
 print(a)
+oneGame(seed=123)
 #[oneTurn!(a, prnt=true) for _ in 1:1000]
 
 
